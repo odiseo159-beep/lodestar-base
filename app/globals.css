@@ -1,26 +1,548 @@
 @import "tailwindcss";
 
+/* ──────────────────────────────────────────────
+   Terminal palette
+   ────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --screen: #000000;
+  --screen-2: #0a0a0a;
+  --screen-3: #111111;
+
+  --ink: #f0f0f0;
+  --ink-dim: #707070;
+  --ink-faint: #3a3a3a;
+
+  --rule: #2a2a2a;
+  --rule-hot: #4a4a4a;
+  --rule-blue: #1e3666;
+
+  /* Base brand blue, lifted +2 steps for readability on near-black */
+  --accent: #4d8ef4;
+  --accent-dim: #1e3666;
+  --accent-glow: rgba(77, 142, 244, 0.35);
+  --accent-glow-soft: rgba(77, 142, 244, 0.15);
+
+  --grow: #86efac;
+  --warn: #f0b85f;
+  --err: #e87070;
+  --err-glow: rgba(232, 112, 112, 0.4);
+
+  /* Overlay opacities used by atmospherics — overridden by light theme */
+  --scanline-opacity: 0.02;
+  --vignette-strength: 0.35;
+}
+
+/*
+   Light theme — paper terminal. Triggered by `data-theme="light"` on
+   <html>. We invert ink/screen, darken the accent so blue stays
+   readable on near-white, and dial atmospheric overlays way down so
+   they don't crush the page into mud.
+*/
+html[data-theme="light"] {
+  --screen: #f4f5f8;
+  --screen-2: #ffffff;
+  --screen-3: #e8eaef;
+
+  --ink: #0b1424;
+  --ink-dim: #5a6478;
+  --ink-faint: #9aa3b5;
+
+  --rule: #d4d8e0;
+  --rule-hot: #a8b0c0;
+  --rule-blue: #b0c4e8;
+
+  --accent: #1656c4;
+  --accent-dim: #b0c4e8;
+  --accent-glow: rgba(22, 86, 196, 0.18);
+  --accent-glow-soft: rgba(22, 86, 196, 0.08);
+
+  --grow: #1a8534;
+  --warn: #b46a00;
+  --err: #b9292d;
+  --err-glow: rgba(185, 41, 45, 0.25);
+
+  --scanline-opacity: 0.012;
+  --vignette-strength: 0.06;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-screen: var(--screen);
+  --color-screen-2: var(--screen-2);
+  --color-screen-3: var(--screen-3);
+  --color-ink: var(--ink);
+  --color-ink-dim: var(--ink-dim);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-rule-hot: var(--rule-hot);
+  --color-rule-blue: var(--rule-blue);
+  --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-grow: var(--grow);
+  --color-warn: var(--warn);
+  --color-err: var(--err);
+  --font-sans: var(--font-geist-mono);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ──────────────────────────────────────────────
+   Global reset / terminal grounding
+   ────────────────────────────────────────────── */
+html,
+body {
+  background: var(--screen);
+  color: var(--ink);
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, monospace;
+  font-feature-settings: "ss01", "ss02", "cv01", "cv02";
+  -webkit-font-smoothing: subpixel-antialiased;
+  text-rendering: geometricPrecision;
+}
+
+/* Force-flat: no rounding on inputs/buttons/anything unless explicit */
+button,
+input,
+textarea,
+select,
+a,
+li,
+div,
+section,
+article,
+header,
+footer,
+main {
+  border-radius: 0 !important;
+}
+
+input,
+textarea {
+  background: transparent;
+  caret-color: var(--accent);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--screen);
+}
+
+/* ──────────────────────────────────────────────
+   TIER 1 — Atmospherics (always-on, subtle)
+   ────────────────────────────────────────────── */
+
+/* Scanlines — dialed via --scanline-opacity (theme-aware) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    rgba(255, 255, 255, var(--scanline-opacity)) 2px,
+    rgba(255, 255, 255, var(--scanline-opacity)) 3px
+  );
+  mix-blend-mode: overlay;
+}
+
+/* Vignette — strength via --vignette-strength */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 40%,
+    rgba(0, 0, 0, var(--vignette-strength)) 100%
+  );
+}
+
+/* Very rare, very brief brightness flicker (every ~22s) */
+@keyframes term-flicker {
+  0%,
+  92%,
+  100% {
+    filter: none;
+  }
+  93% {
+    filter: brightness(0.97);
+  }
+  94% {
+    filter: brightness(1.02);
+  }
+  95% {
+    filter: brightness(0.99);
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  animation: term-flicker 22s infinite linear;
+}
+
+/* Phosphor glow on accent text (subtle: 4px blur, 0.25 opacity) */
+.glow {
+  text-shadow:
+    0 0 4px var(--accent-glow),
+    0 0 10px var(--accent-glow-soft);
+}
+
+.glow-ink {
+  text-shadow: 0 0 2px rgba(240, 240, 240, 0.25);
+}
+
+.glow-err {
+  text-shadow: 0 0 6px var(--err-glow);
+}
+
+/* Subtle chromatic aberration on big headlines (1px offset) */
+.chromatic {
+  text-shadow:
+    -1px 0 0 rgba(232, 112, 112, 0.35),
+    1px 0 0 rgba(77, 142, 244, 0.55);
+}
+
+/* ──────────────────────────────────────────────
+   Logo glitch — animated RGB-tear effect
+   Two transparent layers stacked over the base
+   logo. Most of the time they're opacity 0; for
+   brief windows they shift horizontally with
+   clip-path slices, creating "VHS tearing".
+   ────────────────────────────────────────────── */
+@keyframes logo-tear-r {
+  0%, 14%, 16%, 47%, 49%, 88%, 92.5%, 100% {
+    opacity: 0;
+    transform: translate(0, 0);
+    clip-path: inset(0);
+  }
+  15% {
+    opacity: 0.32;
+    transform: translate(-1px, 0);
+    clip-path: inset(40% 0 50% 0);
+  }
+  48% {
+    opacity: 0.4;
+    transform: translate(-1px, 0);
+    clip-path: inset(70% 0 18% 0);
+  }
+  89% {
+    opacity: 0.55;
+    transform: translate(-2px, 0);
+    clip-path: inset(20% 0 58% 0);
+  }
+  90% {
+    opacity: 0.5;
+    transform: translate(-1px, 1px);
+    clip-path: inset(58% 0 20% 0);
+  }
+  91% {
+    opacity: 0.55;
+    transform: translate(-2px, 0);
+    clip-path: inset(38% 0 38% 0);
+  }
+  92% {
+    opacity: 0.3;
+    transform: translate(-1px, 0);
+    clip-path: inset(75% 0 10% 0);
+  }
+}
+
+@keyframes logo-tear-b {
+  0%, 14%, 16%, 47%, 49%, 88%, 92.5%, 100% {
+    opacity: 0;
+    transform: translate(0, 0);
+    clip-path: inset(0);
+  }
+  15% {
+    opacity: 0.4;
+    transform: translate(1px, 0);
+    clip-path: inset(50% 0 42% 0);
+  }
+  48% {
+    opacity: 0.5;
+    transform: translate(1px, 0);
+    clip-path: inset(20% 0 68% 0);
+  }
+  89% {
+    opacity: 0.7;
+    transform: translate(2px, 0);
+    clip-path: inset(48% 0 30% 0);
+  }
+  90% {
+    opacity: 0.6;
+    transform: translate(2px, -1px);
+    clip-path: inset(15% 0 65% 0);
+  }
+  91% {
+    opacity: 0.7;
+    transform: translate(1px, 0);
+    clip-path: inset(70% 0 12% 0);
+  }
+  92% {
+    opacity: 0.4;
+    transform: translate(1px, 0);
+    clip-path: inset(28% 0 50% 0);
+  }
+}
+
+.logo-layer-r {
+  color: rgba(232, 112, 112, 1);
+  animation: logo-tear-r 6.2s infinite linear;
+  will-change: transform, opacity, clip-path;
+}
+
+.logo-layer-b {
+  color: rgba(77, 142, 244, 1);
+  animation: logo-tear-b 5.7s infinite linear;
+  will-change: transform, opacity, clip-path;
+}
+
+/* Compact mobile text logo — same idea but using text-shadow */
+@keyframes logo-text-tear {
+  0%, 14%, 16%, 47%, 49%, 88%, 92.5%, 100% {
+    text-shadow:
+      0 0 4px var(--accent-glow),
+      0 0 10px var(--accent-glow-soft);
+    transform: translate(0, 0);
+  }
+  15% {
+    text-shadow:
+      -1px 0 0 rgba(232, 112, 112, 0.55),
+      1px 0 0 rgba(77, 142, 244, 0.8);
+    transform: translate(-1px, 0);
+  }
+  48% {
+    text-shadow:
+      1px 0 0 rgba(232, 112, 112, 0.55),
+      -1px 0 0 rgba(77, 142, 244, 0.8);
+    transform: translate(1px, 0);
+  }
+  89% {
+    text-shadow:
+      -2px 0 0 rgba(232, 112, 112, 0.65),
+      2px 0 0 rgba(77, 142, 244, 0.9);
+    transform: translate(-1px, 0);
+  }
+  90% {
+    text-shadow:
+      2px 0 0 rgba(232, 112, 112, 0.65),
+      -2px 0 0 rgba(77, 142, 244, 0.9);
+    transform: translate(1px, 1px);
+  }
+  91% {
+    text-shadow:
+      -1px 0 0 rgba(232, 112, 112, 0.55),
+      1px 0 0 rgba(77, 142, 244, 0.8);
+    transform: translate(0, 0);
+  }
+}
+
+.logo-text-tear {
+  animation: logo-text-tear 6s infinite linear;
+  will-change: transform, text-shadow;
+}
+
+/* ──────────────────────────────────────────────
+   Cursor
+   ────────────────────────────────────────────── */
+@keyframes term-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.term-cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1em;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+  vertical-align: -2px;
+  animation: term-blink 1s steps(2, end) infinite;
+  margin-left: 2px;
+}
+
+/* ──────────────────────────────────────────────
+   TIER 4 — Glitch as functional signal
+   ────────────────────────────────────────────── */
+
+/* Subtle shake + RGB split — apply for 120ms on events */
+@keyframes glitch-shake {
+  0%,
+  100% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-1px, 0);
+  }
+  40% {
+    transform: translate(1px, 0);
+  }
+  60% {
+    transform: translate(-0.5px, 0.5px);
+  }
+  80% {
+    transform: translate(0.5px, -0.5px);
+  }
+}
+
+@keyframes glitch-rgb {
+  0%,
+  100% {
+    text-shadow:
+      0 0 4px var(--accent-glow),
+      0 0 10px var(--accent-glow-soft);
+  }
+  25% {
+    text-shadow:
+      -1px 0 0 rgba(232, 112, 112, 0.4),
+      1px 0 0 rgba(77, 142, 244, 0.55);
+  }
+  50% {
+    text-shadow:
+      1px 0 0 rgba(232, 112, 112, 0.4),
+      -1px 0 0 rgba(77, 142, 244, 0.55);
+  }
+  75% {
+    text-shadow:
+      -0.5px 0 0 rgba(232, 112, 112, 0.3),
+      0.5px 0 0 rgba(77, 142, 244, 0.45);
+  }
+}
+
+.glitch-flash {
+  animation:
+    glitch-shake 0.12s steps(4) 1,
+    glitch-rgb 0.12s steps(4) 1;
+}
+
+/* Stronger jitter for error states */
+.glitch-error {
+  animation: glitch-shake 0.18s steps(6) 1;
+}
+
+/* Row reveal stagger — each item fades in left-to-right */
+@keyframes term-reveal {
+  from {
+    opacity: 0;
+    transform: translateX(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.anim-reveal {
+  animation: term-reveal 0.18s ease-out backwards;
+}
+
+/* Bouncing dot loader — "[░░░█░░░░░░░░░░]" feel */
+@keyframes loader-slide {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Tool panel: subtle outer-glow pulse to draw attention when ready */
+@keyframes tool-ready-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 16px -6px var(--accent-glow),
+      0 0 0 1px var(--accent-dim);
+  }
+  50% {
+    box-shadow:
+      0 0 24px -2px var(--accent-glow),
+      0 0 0 1px var(--accent);
+  }
+}
+
+.tool-ready {
+  animation: tool-ready-pulse 3.5s ease-in-out infinite;
+}
+
+.tool-idle {
+  box-shadow:
+    0 0 12px -8px var(--accent-glow),
+    0 0 0 1px transparent;
+}
+
+/* Slow blink for "ready" dot */
+@keyframes ready-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.ready-dot {
+  animation: ready-blink 1.4s ease-in-out infinite;
+}
+
+/* ──────────────────────────────────────────────
+   Scrollbar (Webkit) tuned to the terminal
+   ────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--screen);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border: 2px solid var(--screen);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--rule-hot);
+}
+
+/* Underline links by default, no color jumps */
+a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+a:hover {
+  color: var(--ink);
+  background: var(--accent);
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none;
+  }
+  .term-cursor {
+    animation: none;
+    opacity: 1;
+  }
+  .anim-reveal,
+  .glitch-flash,
+  .glitch-error,
+  .logo-layer-r,
+  .logo-layer-b,
+  .logo-text-tear {
+    animation: none;
+  }
+  .logo-layer-r,
+  .logo-layer-b {
+    opacity: 0;
+  }
 }

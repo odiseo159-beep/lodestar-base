@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local IDE / agent state
+/.claude/
+/.cursor/
+/.vscode/
+
+# scratch JSON dumps from CLI experimentation (./.audit.json, ./.search.json, etc.)
+/.*.json
