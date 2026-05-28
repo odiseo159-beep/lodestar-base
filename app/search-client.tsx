@@ -13,6 +13,7 @@ import HeroSection from "./hero-section";
 import ResultsFacets from "./results-facets";
 import AgentReport from "./agent-report";
 import ThemeToggle from "./theme-toggle";
+import PixelMascot from "./pixel-mascot";
 import { applyFilters, type FacetKey } from "@/lib/tags";
 
 type ExtractedMetadata = {
@@ -261,7 +262,7 @@ export default function SearchClient({
       </div>
 
       <main className="min-h-screen bg-screen px-4 lg:px-6 py-6">
-        <div className="2xl:max-w-[1800px] 2xl:mx-auto">
+        <div className="relative isolate 2xl:max-w-[1800px] 2xl:mx-auto">
           {/* ────── header (nav-only in hero mode, logo+nav in working mode) ────── */}
           <header
             className={`flex items-start justify-between gap-4 flex-wrap ${
@@ -552,12 +553,32 @@ export default function SearchClient({
           )}
 
           {/* ────── footer ────── */}
-          <footer className="mt-16 pt-4 border-t border-rule text-[10px] text-ink-faint uppercase tracking-widest flex items-center justify-between">
+          <footer className="mt-16 pt-4 border-t border-rule text-[10px] text-ink-faint uppercase tracking-widest flex items-center justify-between relative">
             <span>lodestar // agent-curated discovery</span>
             <span>
               base · sonnet 4.5 · {new Date().toISOString().slice(0, 10)}
             </span>
           </footer>
+
+          {/* ────── background mascot — watermark sentinel watching from the
+               lower edge (working mode only). z-index: -1 keeps it behind all
+               static content without touching any other element's stacking;
+               no overflow-hidden so the sticky tools rail still works. ────── */}
+          {!inHero && (
+            <div
+              aria-hidden
+              className="mascot-watermark pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-8 hidden sm:block"
+              style={{ zIndex: -1 }}
+            >
+              <PixelMascot
+                pixel={14}
+                color="var(--mascot-watermark)"
+                idle={false}
+                glow={false}
+                ariaLabel=""
+              />
+            </div>
+          )}
         </div>
       </main>
     </>

@@ -30,6 +30,9 @@
   /* Overlay opacities used by atmospherics — overridden by light theme */
   --scanline-opacity: 0.02;
   --vignette-strength: 0.35;
+
+  /* Working-mode mascot watermark — muted, theme-aware */
+  --mascot-watermark: #8a8f9c;
 }
 
 /*
@@ -63,6 +66,8 @@ html[data-theme="light"] {
 
   --scanline-opacity: 0.012;
   --vignette-strength: 0.06;
+
+  --mascot-watermark: #5b6172;
 }
 
 @theme inline {
@@ -479,6 +484,37 @@ body {
     0 0 0 1px transparent;
 }
 
+/* ──────────────────────────────────────────────
+   Pixel mascot — idle life (antenna pulse, chest breath)
+   The eye blink is driven in JS; these two are pure CSS.
+   ────────────────────────────────────────────── */
+@keyframes lds-mascot-antenna-blink {
+  0%, 60%, 100% { opacity: 1; }
+  70%, 90% { opacity: 0.15; }
+  80% { opacity: 1; }
+}
+.lds-mascot-antenna {
+  animation: lds-mascot-antenna-blink 2.2s ease-in-out infinite;
+}
+@keyframes lds-mascot-chest-breath {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.lds-mascot-chest {
+  animation: lds-mascot-chest-breath 3.4s ease-in-out infinite;
+}
+
+/* Working-mode background watermark wrapper — sits behind content as an
+   ambient sentinel. Opacity + blend differ per theme. */
+.mascot-watermark {
+  opacity: 0.18;
+  mix-blend-mode: screen;
+}
+html[data-theme="light"] .mascot-watermark {
+  opacity: 0.22;
+  mix-blend-mode: multiply;
+}
+
 /* Slow blink for "ready" dot */
 @keyframes ready-blink {
   0%,
@@ -538,7 +574,9 @@ a:hover {
   .glitch-error,
   .logo-layer-r,
   .logo-layer-b,
-  .logo-text-tear {
+  .logo-text-tear,
+  .lds-mascot-antenna,
+  .lds-mascot-chest {
     animation: none;
   }
   .logo-layer-r,

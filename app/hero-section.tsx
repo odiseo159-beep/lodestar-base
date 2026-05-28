@@ -6,6 +6,7 @@ import SystemStream from "./system-stream";
 import OnchainPulse from "./onchain-pulse";
 import HeroTags from "./hero-tags";
 import HowItWorks from "./how-it-works";
+import PixelMascot from "./pixel-mascot";
 
 type Props = {
   query: string;
@@ -30,8 +31,9 @@ export default function HeroSection({
 }: Props) {
   return (
     <div className="px-4 lg:px-6 py-10 lg:py-14">
-      {/* big logo */}
-      <div className="flex justify-center">
+      {/* mascot sentinel + big logo */}
+      <div className="flex flex-col items-center gap-5">
+        <PixelMascot pixel={5} ariaLabel="lodestar mascot" />
         <AsciiLogo glitch />
       </div>
 

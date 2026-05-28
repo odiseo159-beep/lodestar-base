@@ -47,3 +47,5 @@ next-env.d.ts
 
 # scratch JSON dumps from CLI experimentation (./.audit.json, ./.search.json, etc.)
 /.*.json
+
+.vercel
